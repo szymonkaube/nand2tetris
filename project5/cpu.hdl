@@ -86,4 +86,26 @@ CHIP CPU {
 
       // if C instruction then pass d3 as writeM
       And(a=instruction[15], b=instruction[3], out=writeM);
+
+      // if j1 bit and ALU ng bit
+      And(a=instruction[2], b=outNg, out=pcNgCond);
+      // if j2 bit and ALU zr bit
+      And(a=instruction[1], b=outZr, out=pcZrCond);
+      // if j3 bit and not negative and not zero
+      Not(in=outNg, out=outNonNeg);
+      Not(in=outZr, out=outNonZero);
+      And(a=outNonNeg, b=outNonZero, out=outPos);
+      And(a=outPos, b=instruction[0], out=pcPosCond);
+
+      // one of three jump conditions is true...
+      Or(a=pcNgCond, b=pcZrCond, out=pcCondOne);
+      Or(a=pcCondOne, b=pcPosCond, out=pcJumpConds);
+      // ...and C instruction
+      And(a=instruction[15], b=pcJumpConds, out=pcJump);
+
+      // increment if A instruction or no jump
+      Not(in=pcJump, out=pcNoJump);
+      Or(a=pcNoJump, b=isAInstruct, out=pcInc);
+
+      PC(in=aReg, load=pcJump, inc=pcInc, reset=reset, out[0..14]=pc);
 }
