@@ -1,6 +1,6 @@
 import re
 
-from data_types import ParsedInstruction, AFields, CFields
+from data_types import ParsedLine, CFields
 
 
 class Parser:
@@ -8,7 +8,7 @@ class Parser:
         self.comment_symbol = "//"
         self.a_instruction_symbol = "@"
 
-    def parse(self, line: str) -> ParsedInstruction:
+    def parse(self, line: str) -> ParsedLine | None:
         line = line.strip()
 
         if not line or line.startswith(self.comment_symbol):
@@ -18,29 +18,37 @@ class Parser:
         if not line:
             return None
 
+        is_symbol_line = self._is_symbol_line(line)
         is_a_instruction = line.startswith(self.a_instruction_symbol)
-        if is_a_instruction:
-            instruction = ParsedInstruction(
-                "A",
-                self._get_a_instruction_fields(line)
+        if is_symbol_line:
+            parsed_line = ParsedLine(
+                kind="L",
+                symbol=self._get_symbol_line_symbol(line)
+            )
+        elif is_a_instruction:
+            parsed_line = ParsedLine(
+                kind="A",
+                symbol=self._get_a_instruction_fields(line)
             )
         else:
-            instruction = ParsedInstruction(
-                "C",
-                self._get_c_instruction_fields(line)
+            parsed_line = ParsedLine(
+                kind="C",
+                fields=self._get_c_instruction_fields(line)
             )
 
-        return instruction
+        return parsed_line
+
+    def _is_symbol_line(self, line: str) -> bool:
+        return line.startswith("(") and line.endswith(")")
 
     def _remove_inline_comment(self, line: str) -> str:
-        line_w_no_comments = line
         if self.comment_symbol in line:
-            line_w_no_comments = line.split(self.comment_symbol)[0]
+            line = line.split(self.comment_symbol)[0]
 
-        return line_w_no_comments
+        return line.strip()
 
-    def _get_a_instruction_fields(self, line: str) -> AFields:
-        return AFields(line[1:])
+    def _get_a_instruction_fields(self, line: str) -> str:
+        return line[1:]
 
     def _get_c_instruction_fields(self, line: str) -> CFields:
         pattern = r"(?:(?P<dest>[^=;]+)=)?(?P<comp>[^=;]+)(?:;(?P<jump>[^=;]+))?"
@@ -51,3 +59,6 @@ class Parser:
         jump = match.group("jump")
 
         return CFields(dest, comp, jump)
+
+    def _get_symbol_line_symbol(self, line: str) -> str:
+        return line[1:-1]

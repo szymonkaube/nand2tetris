@@ -1,6 +1,6 @@
 from typing import Optional
 
-from data_types import ParsedInstruction
+from data_types import ParsedLine
 
 
 class Code:
@@ -59,23 +59,23 @@ class Code:
         "JMP": "111",
     }
 
-    def get_instruction_binary(self, instruction: ParsedInstruction):
-        if instruction.kind == "A":
-            return self._a_instruction_to_binary(instruction)
+    def get_instruction_binary(self, line: ParsedLine):
+        if line.kind == "A":
+            return self._a_instruction_to_binary(line)
         else:
-            return self._c_instruction_to_binary(instruction)
+            return self._c_instruction_to_binary(line)
 
-    def _a_instruction_to_binary(self, instruction: ParsedInstruction) -> str:
-        binary = format(int(instruction.fields.value), "b")
+    def _a_instruction_to_binary(self, line: ParsedLine) -> str:
+        binary = format(int(line.symbol), "b")
         num_padding_zeros = 16 - len(binary)
         return num_padding_zeros * "0" + binary
 
-    def _c_instruction_to_binary(self, instruction: ParsedInstruction) -> str:
+    def _c_instruction_to_binary(self, line: ParsedLine) -> str:
         return (
             "111"
-            + self._comp(instruction.fields.comp)
-            + self._dest(instruction.fields.dest)
-            + self._jump(instruction.fields.jump)
+            + self._comp(line.fields.comp)
+            + self._dest(line.fields.dest)
+            + self._jump(line.fields.jump)
         )
 
     def _comp(self, mnemonic: str) -> str:

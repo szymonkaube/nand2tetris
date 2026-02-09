@@ -1,10 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
-
-
-@dataclass
-class AFields:
-    value: str
+from typing import Optional, Literal
 
 
 @dataclass
@@ -15,6 +10,7 @@ class CFields:
 
 
 @dataclass
-class ParsedInstruction:
-    kind: str  # A or C
-    fields: AFields | CFields
+class ParsedLine:
+    kind: Literal["A", "C", "L"]
+    symbol: Optional[str] = None
+    fields: Optional[CFields] = None
