@@ -7,36 +7,30 @@ class Parser:
     def __init__(self):
         self.comment_symbol = "//"
         self.a_instruction_symbol = "@"
-        self.register_value_length = 15
 
-    def parse(self, lines: list) -> list[ParsedInstruction]:
-        parsed_lines = []
+    def parse(self, line: str) -> ParsedInstruction:
+        line = line.strip()
 
-        for line in lines:
-            line = line.strip()
+        if not line or line.startswith(self.comment_symbol):
+            return None
 
-            if not line or line.startswith(self.comment_symbol):
-                continue
+        line = self._remove_inline_comment(line)
+        if not line:
+            return None
 
-            line = self._remove_inline_comment(line)
-            if not line:
-                continue
+        is_a_instruction = line.startswith(self.a_instruction_symbol)
+        if is_a_instruction:
+            instruction = ParsedInstruction(
+                "A",
+                self._get_a_instruction_fields(line)
+            )
+        else:
+            instruction = ParsedInstruction(
+                "C",
+                self._get_c_instruction_fields(line)
+            )
 
-            is_a_instruction = line.startswith(self.a_instruction_symbol)
-            if is_a_instruction:
-                instruction = ParsedInstruction(
-                    "A",
-                    self._get_a_instruction_fields(line)
-                )
-            else:
-                instruction = ParsedInstruction(
-                    "C",
-                    self._get_c_instruction_fields(line)
-                )
-
-            parsed_lines.append(instruction)
-
-        return parsed_lines
+        return instruction
 
     def _remove_inline_comment(self, line: str) -> str:
         line_w_no_comments = line

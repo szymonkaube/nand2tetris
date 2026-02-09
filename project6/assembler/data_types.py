@@ -16,5 +16,5 @@ class CFields:
 
 @dataclass
 class ParsedInstruction:
-    type: str  # A or C
+    kind: str  # A or C
     fields: AFields | CFields
