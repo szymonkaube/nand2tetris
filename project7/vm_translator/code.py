@@ -53,7 +53,29 @@ class Code:
         return asm_load_d + asm_push
 
     def _get_pop_assembly(self, pop_command: PopCommand) -> str:
-        pass
+        segment_pointer = self.segment_map.get(pop_command.segment)
+        i = pop_command.i
+
+        asm = []
+        if pop_command.segment in ("local", "argument", "this", "that"):
+            asm = [f"@{segment_pointer}", "D=M", f"@{i}", "D=D+A",
+                   "@R13", "M=D",
+                   "@SP", "AM=M-1", "D=M", "@R13", "A=M", "M=D"]
+        elif pop_command.segment == "constant":
+            raise ValueError("We cannot pop to constant")
+        elif pop_command.segment == "static":
+            asm = ["@SP", "AM=M-1", "D=M", f"@{self.filename}.{i}", "M=D"]
+        elif pop_command.segment == "temp":
+            target_address = 5 + int(i)
+            asm = ["@SP", "AM=M-1", "D=M", f"@{target_address}", "M=D"]
+        elif pop_command.segment == "pointer":
+            segment_pointer = segment_pointer[i]
+            asm = ["@SP", "AM=M-1", "D=M", f"@{segment_pointer}", "M=D"]
+        else:
+            raise ValueError(f"Push command has unknown segment type: {
+                             pop_command.segment}")
+
+        return "\n".join(asm)
 
     def _get_arithmetic_assembly(self, arithmetic_command: ArithmeticCommand) -> str:
         pass
