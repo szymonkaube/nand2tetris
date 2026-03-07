@@ -9,6 +9,18 @@ class Code:
             "argument": "ARG",
             "pointer": ["THIS", "THAT"]
         }
+        self.arithmetic_map = {
+            "add": "+",
+            "sub": "-",
+            "eq": "JEQ",
+            "gt": "JGT",
+            "lt": "JLT",
+            "and": "&",
+            "or": "|",
+            "neg": "-",
+            "not": "!"
+        }
+        self.logic_label_counter = 0
 
     def get_assembly(self, vm_command: Command) -> str:
         match vm_command:
@@ -43,8 +55,7 @@ class Code:
             segment_pointer = segment_pointer[i]
             asm = [f"@{segment_pointer}", "D=M"]
         else:
-            raise ValueError(f"Push command has unknown segment type: {
-                             push_command.segment}")
+            raise ValueError(f"Push command has unknown segment type: {push_command.segment}")
 
         # universal "push D to stack"
         asm.extend([
@@ -76,10 +87,28 @@ class Code:
             segment_pointer = segment_pointer[i]
             asm = ["@SP", "AM=M-1", "D=M", f"@{segment_pointer}", "M=D"]
         else:
-            raise ValueError(f"Push command has unknown segment type: {
-                             pop_command.segment}")
+            raise ValueError(f"Pop command has unknown segment type: {pop_command.segment}")
 
         return "\n".join(asm)
 
     def _get_arithmetic_assembly(self, arithmetic_command: ArithmeticCommand) -> str:
-        pass
+        if arithmetic_command.op in ("add", "sub", "and", "or"):
+            asm_op = self.arithmetic_map[arithmetic_command.op]
+            asm = ["@SP", "AM=M-1", "D=M", "@SP", "A=M-1", f"M=M{asm_op}D"]
+        elif arithmetic_command.op in ("eq", "gt", "lt"):
+            asm_op = self.arithmetic_map[arithmetic_command.op]
+            asm = ["@SP", "AM=M-1", "D=M", "@SP", "A=M-1", "D=M-D",
+                   f"@TRUE_{self.logic_label_counter}", f"D;{asm_op}",
+                   "@SP", "A=M-1", "M=0",
+                   f"@DONE_{self.logic_label_counter}", "0;JMP",
+                   f"(TRUE_{self.logic_label_counter})",
+                   "@SP", "A=M-1", "M=-1",
+                   f"(DONE_{self.logic_label_counter})"]
+            self.logic_label_counter += 1
+        elif arithmetic_command.op in ("neg", "not"):
+            asm_op = self.arithmetic_map[arithmetic_command.op]
+            asm = ["@SP", "A=M-1", f"M={asm_op}M"]
+        else:
+            raise ValueError(f"Arithmetic command has unknown operation type: f{arithmetic_command.op}")
+
+        return "\n".join(asm)
