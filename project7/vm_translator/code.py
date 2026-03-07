@@ -7,8 +7,7 @@ class Code:
         self.segment_map = {
             "local": "LCL",
             "argument": "ARG",
-            "this": "THIS",
-            "that": "THAT"
+            "pointer": ["THIS", "THAT"]
         }
 
     def get_assembly(self, vm_command: Command) -> str:
@@ -37,13 +36,7 @@ class Code:
             target_address = 5 + int(i)
             asm_load_d = f"@{target_address}\nD=M\n"
         elif push_command.segment == "pointer":
-            if i == 0:
-                segment_pointer = "THIS"
-            elif i == 1:
-                segment_pointer = "THAT"
-            else:
-                raise ValueError(f"Pointer command requires 0 or 1. Got: f{i}")
-
+            segment_pointer = segment_pointer[i]
             asm_load_d = f"@{segment_pointer}\nD=M\n"
         else:
             raise ValueError(f"Push command has unknown segment type: {
