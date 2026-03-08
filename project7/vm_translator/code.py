@@ -7,18 +7,20 @@ class Code:
         self.segment_map = {
             "local": "LCL",
             "argument": "ARG",
+            "this": "THIS",
+            "that": "THAT",
             "pointer": ["THIS", "THAT"]
         }
         self.arithmetic_map = {
-            "add": "+",
-            "sub": "-",
+            "add": "D+M",
+            "sub": "M-D",
             "eq": "JEQ",
             "gt": "JGT",
             "lt": "JLT",
-            "and": "&",
-            "or": "|",
-            "neg": "-",
-            "not": "!"
+            "and": "D&M",
+            "or": "D|M",
+            "neg": "-M",
+            "not": "!M"
         }
         self.logic_label_counter = 0
 
@@ -94,7 +96,7 @@ class Code:
     def _get_arithmetic_assembly(self, arithmetic_command: ArithmeticCommand) -> str:
         if arithmetic_command.op in ("add", "sub", "and", "or"):
             asm_op = self.arithmetic_map[arithmetic_command.op]
-            asm = ["@SP", "AM=M-1", "D=M", "@SP", "A=M-1", f"M=D{asm_op}M"]
+            asm = ["@SP", "AM=M-1", "D=M", "@SP", "A=M-1", f"M={asm_op}"]
         elif arithmetic_command.op in ("eq", "gt", "lt"):
             asm_op = self.arithmetic_map[arithmetic_command.op]
             asm = ["@SP", "AM=M-1", "D=M", "@SP", "A=M-1", "D=M-D",
@@ -107,7 +109,7 @@ class Code:
             self.logic_label_counter += 1
         elif arithmetic_command.op in ("neg", "not"):
             asm_op = self.arithmetic_map[arithmetic_command.op]
-            asm = ["@SP", "A=M-1", f"M={asm_op}M"]
+            asm = ["@SP", "A=M-1", f"M={asm_op}"]
         else:
             raise ValueError(f"Arithmetic command has unknown operation type: f{arithmetic_command.op}")
 
