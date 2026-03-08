@@ -94,7 +94,7 @@ class Code:
     def _get_arithmetic_assembly(self, arithmetic_command: ArithmeticCommand) -> str:
         if arithmetic_command.op in ("add", "sub", "and", "or"):
             asm_op = self.arithmetic_map[arithmetic_command.op]
-            asm = ["@SP", "AM=M-1", "D=M", "@SP", "A=M-1", f"M=M{asm_op}D"]
+            asm = ["@SP", "AM=M-1", "D=M", "@SP", "A=M-1", f"M=D{asm_op}M"]
         elif arithmetic_command.op in ("eq", "gt", "lt"):
             asm_op = self.arithmetic_map[arithmetic_command.op]
             asm = ["@SP", "AM=M-1", "D=M", "@SP", "A=M-1", "D=M-D",
